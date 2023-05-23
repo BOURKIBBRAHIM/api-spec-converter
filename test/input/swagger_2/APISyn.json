@@ -1,0 +1,1259 @@
+components:
+  schemas:
+    PERI_contract_data:
+      description: >-
+        Données relatives aux contrats PERI.
+
+        Données renseignées uniquement pour les comptes ayant cette typologie et
+        si synthesis_level=2
+      title: PERI_contract_data
+      type: object
+      properties:
+        peri_compartments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Compartment'
+      x-examples: {}
+    Contract_properties:
+      description: Propriétés du contrat
+      title: Contract_properties
+      type: object
+      properties:
+        contract_id:
+          minLength: 11
+          description: >-
+            Numéro de contrat permettant de faire le lien entre le S.I.CA-TITRES
+            et le S.I. LCL
+          type: string
+          maxLength: 11
+          example: '00000068660'
+        options:
+          description: >-
+            Champ indiquant les informations supplémentaires demandées.
+
+            Ex : 
+
+            OPC_SCHEDULED_SUB : Option permettant de retourner l'ensemble des
+            éléments associés aux versements OPC programmés
+          type: array
+          items:
+            type: string
+            example: OPC_SCHEDULED_SUB
+        product_code:
+          description: >-
+            Code commercial associé à la typologie de compte ( (ex : 0110
+            correspond au CTO de niveau 1, 0415 au PEA de niveau 2…)
+          type: string
+          example: '0415'
+        uom_code:
+          description: >-
+            uom_code: Unité d’Œuvre (UO) Métier. Cette donnée correspond à
+            l'identifiant de l'organisation rattachée au contrat (Code LCL :
+            20000)
+          type: string
+          example: '20000'
+      required:
+        - contract_id
+        - uom_code
+      x-examples:
+        example-1:
+          id_contract: string
+          'entity_id ': 0
+    Position:
+      description: |-
+        Ensemble des éléments associes à une valeur composant le portefeuille
+        Retourné uniquement si synthesis_level=2
+      title: Position
+      type: object
+      properties:
+        '':
+          type: string
+        support_data:
+          $ref: '#/components/schemas/Support_data'
+        support_properties:
+          $ref: '#/components/schemas/Support_properties'
+      x-examples:
+        example-1:
+          pma: string
+          libelle: Crédit Agricole
+          id: string
+          code_isin: FR100122677
+          quantite: 0
+        example-2:
+          support_data:
+            mif_dm_code: A
+            quantity: 4
+            mif_code: '4'
+            unrealised_gain_or_loss: 30,5
+            exchange_rate: 1,2
+            dat_support_data:
+              rate_type: FIX
+              anticipate_withdraw_penalities: 5,2
+              rate: 1,2
+              term_date: 07-03-2021
+              subscription_date: 07-03-2020
+            pma: 10,8
+            last_known_quote: 10,5
+            last_quote_date: 05-04-2021
+            valorization_amount: 3000,15
+            quote_type: '1'
+            valorization_date: 08-04-2021
+            quote_currency: EUR
+            quote_with_accrued_interest: 10,7
+            pma_currency: EUR
+            scaling_factor: '2'
+            unrealised_gain_or_loss_currency: EUR
+            pledged_status: true
+            quantity_currency: EUR
+            valorization_currency: EUR
+          support_properties:
+            pea_compartment_managed__indicator: true
+            isin_code: FR0000045072
+            label: CREDIT AGRICOLE S.A.
+            product_category: '3'
+    Compartment:
+      description: Données relative à un compartiment du compte pour les comptes PERI.
+      title: Compartment
+      type: object
+      properties:
+        contract_data:
+          $ref: '#/components/schemas/Contract_data'
+        positions:
+          description: Ensemble des valeurs composants le portefeuille du contrat.
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        product_code:
+          description: Code commercial associé à la typologie de compte PERI
+          type: string
+        scheduled_opc_subscription:
+          description: Détail des versements OPC Programmés présents sur le contrat
+          type: array
+          items:
+            $ref: '#/components/schemas/Scheduled_OPC_subscription'
+      required:
+        - contract_data
+    DAT_support_data:
+      description: >-
+        Données relatives aux valeures présentes sur les contrats DAT (Dépôt à
+        terme)
+
+        Données renseignées uniquement sur les portefeuilles de comptes DAT et
+        si synthesis_level=2
+      title: DAT_support_data
+      type: object
+      properties:
+        rate_type:
+          description: |-
+            Type de taux associé au DAT. Peut prendre les valeurs suivantes :
+            - ‘V’ : Taux variable 
+            - ‘F’ : Taux fixe 
+            - ‘P’ : Taux progressif
+          type: string
+          enum:
+            - F
+            - V
+            - P
+          example: F
+        anticipate_withdraw_penalities:
+          description: Pénalités applicables en cas de retrait anticipé sur le DAT
+          type: number
+          example: 5,2
+        rate:
+          description: Taux applicable associé au DAT.
+          type: number
+          example: 1,2
+        term_date:
+          format: date
+          description: Date d'échéance (ou durée d'investissement programmée) du DAT.
+          type: string
+          example: 03-12-2021
+        subscription_date:
+          format: date
+          description: Date de souscription au DAT.
+          type: string
+          example: 07-03-2020
+      required:
+        - subscription_date
+        - term_date
+        - rate_type
+        - rate
+      x-examples:
+        example-2:
+          rate_type: FIX
+          anticipate_withdraw_penalities: 5,2
+          rate: 1,2
+          term_date: 03-12-2021
+          subscription_date: 07-03-2020
+    Support_properties:
+      description: |-
+        Propriétés associées à une valeur (support) composant le portefeuille
+        Données renseignées uniquement si synthesis_level=2
+      title: Support_properties
+      type: object
+      properties:
+        pea_compartment_managed__indicator:
+          description: >-
+            Indicateur d'appartenance au compartiment géré pour les comptes PEA
+            à compartiments. 
+
+            Champ présent uniquemment pour les compte de type PEA à
+            compartiments.
+          type: boolean
+        isin_code:
+          description: Code ISIN identifiant la valeur
+          type: string
+          example: FR0000045072
+        label:
+          description: Libellé de la valeur
+          type: string
+          example: CREDIT AGRICOLE S.A.
+        product_category:
+          description: >
+            Code classification de la valeur. Peut prendre les valeurs suivantes
+            :
+
+            1 Obligation
+
+            3 Bon/Droit
+
+            4 Warrant
+
+            5 Action
+
+            6 Sicav/FCP
+
+            7 Autre 
+
+            8 Tracker
+
+            13 Indices
+
+            14 Devises
+
+            15 Certificat
+
+            VDO Dérivés options
+
+            VDF Dérivés futures
+
+            VDS Dérivés stratégies
+
+
+            Non renseigné pour les valeurs epargne.
+          type: string
+          enum:
+            - '1'
+            - '3'
+            - '4'
+            - '5'
+            - '6'
+            - '7'
+            - '8'
+            - '13'
+            - '14'
+            - '15'
+            - VDO
+            - VDF
+            - VDS
+          example: '3'
+      required:
+        - label
+        - isin_code
+      x-examples:
+        example-1:
+          pea_compartment_managed__indicator: true
+          isin_code: FR0000045072
+          label: CREDIT AGRICOLE S.A.
+          product_category: '3'
+    Support_data:
+      description: |-
+        Données associées à une valeur composant le portefeuille
+        Données renseignées uniquement si synthesis_level=2
+      title: Support_data
+      type: object
+      properties:
+        mif_dm_code:
+          description: >-
+            Classe risque Delmas Marsalet des valeurs composant le portefeuille
+            du contrat. Les actifs sont tous classés dans l'une des 5 classes de
+            risque suivantes : 
+
+            - classe A : produits assurant la sécurité du capital(livret,
+            épargne bancaire, assurance vie en Euros)
+
+            - classe B : produits présentant un risque limité en capital (OPCVM
+            monétaires, obligations, parts sociales)
+
+            - classe C : produits présentant un risque moyen à fort en capital
+            (OPCVM actions et obligations, titres en vif, CCA, CCI)
+
+            - classe D : produits complexes avec risque allant audelà du capital
+            investi (warrant, SRD, produits dérivés)
+
+            - Z = Inconnu
+
+            Si tous les supports ne sont pas homogène la valeurne sera pas
+            renseignée
+          type: string
+          enum:
+            - A
+            - B
+            - C
+            - D
+            - Z
+          example: A
+        quantity:
+          description: Quantité (ou Montant) de titres
+          type: number
+          example: 4
+        mif_code:
+          description: |
+            Classe risque des valeurs composant le portefeuille du contrat 
+            Peut prendre les valeurs suivantes :
+            - de 1 à 7
+            - « Y » = Inconnu
+            - « Z » = Sans signification
+          type: string
+          enum:
+            - '1'
+            - '2'
+            - '3'
+            - '4'
+            - '5'
+            - '6'
+            - '7'
+            - 'Y'
+            - Z
+          example: '4'
+        unrealised_gain_or_loss:
+          description: Plus ou moins-value de la ligne
+          type: number
+          example: 30,5
+        exchange_rate:
+          description: >-
+            Taux de change veille permettant de calculer la +/- value latente en
+            euros pour les valeurs étrangères
+          type: number
+          example: 1,2
+        dat_support_data:
+          $ref: '#/components/schemas/DAT_support_data'
+        pma:
+          description: Prix moyen d'achat (net de frais)
+          type: number
+          example: 10,8
+        last_known_quote:
+          description: 'Dernier cours connu exprimé dans la devise de la valeur '
+          type: number
+          example: 10,5
+        last_quote_date:
+          format: date
+          description: Date à laquelle le dernier cours connu est retourné
+          type: string
+          example: 05-04-2021
+        valorization_amount:
+          description: >
+            Montant correspondant à la valorisation de la valeur dans le
+            portefeuille :
+
+            - Titres : c’est la valorisation de la quantité de titres au dernier
+            cours connu de la veille.
+
+            - Epargne : c’est la valorisation en capital.
+          type: number
+          example: 3000,15
+        quote_type:
+          description: |-
+            Type d'expression du cours :
+            1 : PAR PIECE   
+            2 : EN POURCENTAGE DU NOMINAL 
+          type: string
+          enum:
+            - '1'
+            - '2'
+          example: '1'
+        valorization_date:
+          format: date
+          description: Date à laquelle la valorisation du contrat a été réalisée.
+          type: string
+          example: 08-04-2021
+        quote_currency:
+          description: Devise associée au derniers cours connu
+          type: string
+          example: EUR
+        quote_with_accrued_interest:
+          description: |-
+            Dernier cours connu incluant le coupon couru 
+            Retourné uniquement pour les obligations
+          type: number
+          example: 10,7
+        pma_currency:
+          description: Devise associée au prix moyen d'achat (net de frais)
+          type: string
+          example: EUR
+        scaling_factor:
+          description: |-
+            Mode comptabilisation des Titres :
+              '0'    PAS DE COMPTABILISATION                            
+              '1'    EN UNITE DE TITRE  (valeur par defaut)             
+              '2'    EN NOMINAL (EURO ou DEVISE)                        
+              '3'    EN DIXIEME de part (1/10)                          
+              '4'    EN CENTIEME de part (1/100)                        
+              '5'    EN MILLIEME de part (1/1000)                       
+              '6'    EN DIX MILLIEME de part (1/10000)                  
+              '7'    EN UNITE PAR COUPURE                               
+              '8'    EN CENT MILLIEME de part (1/100000)   
+            espace : pour produits d'épargne    
+          type: string
+          enum:
+            - '0'
+            - '1'
+            - '2'
+            - '3'
+            - '4'
+            - '5'
+            - '6'
+            - '7'
+            - '8'
+          example: '2'
+        unrealised_gain_or_loss_currency:
+          description: Devise asscoiée à la plus ou moins-value de la ligne
+          type: string
+          example: EUR
+        pledged_status:
+          description: 'Indicateur de nantissement de la valeur. '
+          type: boolean
+        quantity_currency:
+          description: >-
+            Devise de la quantité dans le cas d'un expression de la quantit& en
+            montant (ex : cas d'une obligation en nominal)
+          type: string
+          example: EUR
+        valorization_currency:
+          description: Devise associée à la valorisation de la valeur.
+          type: string
+          example: EUR
+      required:
+        - valorization_amount
+        - valorization_currency
+        - valorization_date
+        - mif_code
+        - pledged_status
+      x-examples:
+        example-1:
+          mif_dm_code: A
+          quantity: 4
+          mif_code: '4'
+          unrealised_gain_or_loss: 30,5
+          exchange_rate: 1,2
+          dat_support_data:
+            rate_type: FIX
+            anticipate_withdraw_penalities: 5,2
+            rate: 1,2
+            term_date: 07-03-2021
+            subscription_date: 07-03-2020
+          pma: 10,8
+          last_known_quote: 10,5
+          last_quote_date: 05-04-2021
+          valorization_amount: 3000,15
+          quote_type: '1'
+          valorization_date: 08-04-2021
+          quote_currency: EUR
+          quote_with_accrued_interest: 10,7
+          pma_currency: EUR
+          scaling_factor: '2'
+          unrealised_gain_or_loss_currency: EUR
+          pledged_status: true
+          quantity_currency: EUR
+          valorization_currency: EUR
+    PEA_taxation:
+      description: >-
+        Données relatives à la fiscalité des contrats PEA.
+
+        Données renseignées uniquement pour les comptes ayant cette typologie et
+        si synthesis_level=2
+      title: PEA_taxation
+      type: object
+      properties:
+        pea_first_dutreil_withdrawal_date:
+          format: date
+          description: >-
+            Date du retrait uniquement si le retrait partiel est effectué sur le
+            contrat pour motif 'C' (« Création d’entreprise »). Si un retrait
+            partiel est effectué sur le contrat avec pour motif de retrait «
+            Création d’entreprise » alors les versements futurs ne sont plus
+            autorisés et le PEA est impacté fiscalement (sauf sous certaines
+            conditions).
+          type: string
+          example: 12-01-2021
+        pea_first_payment_date:
+          format: date
+          description: Date à laquelle le premier versement a été effectué sur un PEA.
+          type: string
+          example: 03-12-2018
+        pea_cumul_payments:
+          description: Montant indiquant le cumul des versements effectués pour un PEA
+          type: number
+          example: 11314,69
+        pea_partial_withdraw:
+          format: date
+          description: >-
+            Indicateur permettant de remonter si un retrait partiel a été
+            effectué ou non. 
+          type: boolean
+        pea_cumul_payments_currency:
+          description: >-
+            Devise du montant indiquant le cumul des versements effectués pour
+            un PEA
+          type: string
+          example: EUR
+      required:
+        - pea_partial_withdraw
+      x-examples:
+        example-2:
+          pea_first_dutreil_withdrawal_date: 12-01-2021
+          pea_first_payment_date: 03-12-2018
+          pea_cumul_payments: 11314,69
+          pea_partial_withdraw: true
+          pea_cumul_payments_currency: EUR
+          pea_partiel_withdraw_type: A
+    PEA_compartment_data:
+      description: >-
+        Données associées aux 2 parties (gérée et libre) des contrats PEA à
+        compartiments 
+
+        Données renseignées uniquement pour les comptes ayant cette typologie et
+        si synthesis_level=2
+      title: PEA_compartment_data
+      type: object
+      properties:
+        managed_compartment_cash_currency:
+          description: Devise associée au solde espèces veille du compartiment géré.
+          type: string
+          example: EUR
+        free_compartment_cash_amount:
+          description: Solde espèces veille du compartiment libre.
+          type: number
+          example: 2000,63
+        managed_compartment_valorization:
+          description: Valorisation du compartiment géré.
+          type: number
+          example: 192,15
+        managed_compartment_cash_amount:
+          description: Solde espèces veille du compartiment géré.
+          type: number
+          example: 1000,96
+        free_compartment_valorization_currency:
+          description: Devise associée à la valorisation du compartiment libre.
+          type: string
+          example: EUR
+        free_compartment_cash_currency:
+          description: Devise associée au solde espèces veille du compartiment libre.
+          type: string
+          example: EUR
+        managed_compartment_valorization_currency:
+          description: Devise associée à la valorisation du compartiment géré.
+          type: string
+          example: EUR
+        free_compartment_valorisation:
+          description: Valorisation du compartiment libre.
+          type: number
+          example: 247,12
+      required:
+        - managed_compartment_valorization
+        - managed_compartment_valorization_currency
+        - free_compartment_valorisation
+        - free_compartment_valorization_currency
+        - managed_compartment_cash_amount
+        - managed_compartment_cash_currency
+        - free_compartment_cash_amount
+        - free_compartment_cash_currency
+      x-examples:
+        example-1:
+          managed_compartment_cash_currency: EUR
+          free_compartment_cash_amount: 2000,63
+          managed_compartment_valorization: 192,15
+          managed_compartment_cash_amount: 1000,96
+          free_compartment_valorization_currency: EUR
+          free_compartment_cash_currency: EUR
+          managed_compartment_valorization_currency: EUR
+          free_compartment_valorisation: 247,12
+    Contract_data:
+      description: Données associées au contrat
+      title: Contract_data
+      type: object
+      properties:
+        gestion_profil:
+          description: >-
+            Profil choisi à la souscription et qui correspond à des objectifs de
+            plus values, de rendement, de risques acceptés, d’horizon de
+            placement et de diversification des avoirs. 
+
+            Ce champ n’est renseigné que si le mode de gestion du contrat est en
+            gestion "Conseiller" ou "Sous mandat".
+
+            Valeurs possibles : EQUILIBRE, OFFENSIF, DYNAMIQUE, PRUDENT
+            STANDARD, … 
+
+            Retourné uniquement si synthesis_level=2
+          type: string
+          example: EQUILIBRE
+        valorization:
+          description: >-
+            Valorisation titres qui correspond à la somme de la valorisation de
+            chaque valeur détenue dans le portefeuille
+          type: number
+          example: 1517,44
+        mif_dm_code:
+          description: >-
+            Classe risque Delmas Marsalet du contrat. Les contrats sont classés 
+            parmi les 5 classes de risque suivantes : 
+
+            - classe A : produits assurant la sécurité du capital(livret,
+            épargne bancaire, assurance vie en Euros)
+
+            - classe B : produits présentant un risque limité en capital (OPCVM
+            monétaires, obligations, parts sociales)
+
+            - classe C : produits présentant un risque moyen à fort en capital
+            (OPCVM actions et obligations, titres en vif, CCA, CCI)
+
+            - classe D : produits complexes avec risque allant audelà du capital
+            investi (warrant, SRD, produits dérivés)
+
+            - Z = Inconnu
+
+
+            Si tous les supports ne sont pas homogènes la valeur ne sera pas
+            renseignée
+
+
+            Retourné uniquement si synthesis_level=2
+          type: string
+          enum:
+            - A
+            - B
+            - C
+            - D
+            - Z
+          example: A
+        cash_curreny:
+          description: >-
+            Devise associée au solde espèce veille du compte espèce dédié
+            associé contrat. 
+
+            Retourné uniquement si synthesis_level=2
+          type: string
+          example: EUR
+        cash_amount:
+          description: >-
+            Solde espèce veille du compte espèce dédié associé contrat. 
+
+            Retourné uniquement pour les contrats ayant un compte espèce dédié
+            et si synthesis_level=2
+          type: number
+          example: 800,62
+        mif_code:
+          description: >-
+            Classe risque du contrat. Peut prendre les valeurs suivantes :
+
+            - de 1 à 7
+
+            - « Y » = Inconnu
+
+            - « Z » = Sans signification
+
+
+            Si tous les supports ne sont pas homogènes la valeur ne sera pas
+            renseignée
+
+
+            Retourné uniquement si synthesis_level=2
+          type: string
+          enum:
+            - '1'
+            - '2'
+            - '3'
+            - '4'
+            - '5'
+            - '6'
+            - '7'
+            - 'Y'
+            - Z
+          example: '1'
+        pledged_status:
+          description: >-
+            Indicateur de nantissement du contrat. Peut prendre les valeurs
+            suivantes :
+
+            0 : si aucune ligne du contrat n’est nantie
+
+            1 : si toutes les lignes du contrat sont nanties
+
+            2 : s’il existe au moins une ligne non nantie et au moins une ligne
+            nantie pour tout le contrat
+
+
+            Retourné uniquement si synthesis_level=2
+          type: number
+          enum:
+            - 0
+            - 1
+            - 2
+          example: 0
+        valorization_currency:
+          description: Devise associée à la valorisation du contrat.
+          type: string
+          example: EUR
+        valorization_date:
+          format: date
+          description: Date à laquelle la valorisation du contrat a été réalisée.
+          type: string
+          example: 07-04-2021
+        gestion_mode:
+          description: >-
+            Indicateur permettant de donner le mode de gestion d’un contrat
+            parmi les valeurs suivantes :
+
+            0 : gestion 'libre' 
+
+            1 : gestion 'conseillée'
+
+            2 : gestion 'sous mandat'
+
+
+            Retourné uniquement si synthesis_level=2
+          type: string
+          enum:
+            - '0'
+            - '1'
+            - '2'
+          example: '2'
+      required:
+        - valorization
+        - valorization_currency
+        - valorization_date
+      x-examples:
+        example-1:
+          gestion_profil: prudent
+          valorization: 1517,44
+          mif_dm_code: A
+          cash_curreny: EUR
+          cash_amount: 800,62
+          mif_code: '1'
+          pledged_status: 0
+          valorization_currency: EUR
+          valorization_date: 07-04-2021
+          gestion_mode: '2'
+    Scheduled_OPC_subscription:
+      x-extension-1: null
+      description: >-
+        Données associées aux Versements OPC Programmés  
+
+        Données renseignées uniquement si synthesis_level=2 et si le champ
+        additionnal_informations contient SCHEDULED_OPC_SUB
+      title: Scheduled_OPC_subscription
+      type: object
+      properties:
+        last_revaluation_date:
+          format: date
+          description: >-
+            Date à laquelle la dernière revalorisation a été réalisée. 
+            Renseignée au 31-12-9999 si non significative.
+          type: string
+          example: 31-12-9999
+        component_id:
+          description: Code identifiant (code ISIN) la valeur
+          type: string
+          example: FR0011066794
+        investment_id:
+          description: Numéro identifiant la ligne d’investissement
+          type: string
+          example: '001'
+        revaluation_currency:
+          description: 'Devise associée au montant de la revalorisation '
+          type: string
+          example: EUR
+        term_date:
+          format: date
+          description: >-
+            Date à laquelle a lieu la prochaine échéance au format suivant :
+            MMJJ
+          type: string
+          example: '0310'
+        suspension_end_date:
+          format: date
+          description: >-
+            Date à laquelle prend fin la suspension des versements. Renseignée
+            au 31-12-9999 si non significative.
+          type: string
+          example: 31-12-9999
+        levy_date:
+          format: date
+          description: Date à laquelle le prélèvement est effectué.
+          type: string
+          example: 12-03-2021
+        revaluation_indicator:
+          description: Donnée permettant d’indiquer si l’échéancier à été revalorisé.
+          type: boolean
+        investment_currency:
+          description: Devise du montant de l’investissement
+          type: string
+          example: EUR
+        suspension_begin_date:
+          format: date
+          description: |-
+            Date à partir de laquelle les versements seront suspendus.
+            Renseignée au 31-12-9999 si non significative
+          type: string
+          example: 31-12-9999
+        investment_amount:
+          description: Montant de l’investissement
+          type: number
+          example: 101
+        suspended_deadlines:
+          description: Nombre d’échéances suspendues
+          type: number
+          example: 0
+        revaluate_curreny:
+          description: Devise associée au montant revalorisé
+          type: string
+          example: EUR
+        last_levy_date:
+          format: date
+          description: Date à laquelle a lieu le dernier prélèvement.
+          type: string
+          example: 12-03-2021
+        payment_period:
+          description: |
+            Périodicité des versements qui peut prendre les valeurs suivantes :
+            M – mensuelle
+            T – trimestrielle
+            S- semestrielle
+            A – annuelle
+          type: string
+          enum:
+            - M
+            - T
+            - S
+            - A
+          example: M
+        revaluate_amount:
+          description: Montant revalorisé
+          type: number
+          example: 115
+        revaluation_month:
+          description: |
+            Mois d’application de la revalorisation.
+            Peut prendre les valeurs suivantes :
+            01 : Janvier
+            02 : Février
+            03 : Mars 
+            04 : Avril
+            05 : Mai
+            06 : Juin
+            07 : Juillet
+            08 : Août
+            09 : Septembre
+            10 : Octobre
+            11 : Novembre
+            12 : Décembre 
+          type: string
+          example: '02'
+        revaluation_amount:
+          description: Montant de la revalorisation.
+          type: number
+          example: 120
+        next_revaluation_date:
+          format: date
+          description: >-
+            Date à laquelle la prochaine revalorisation sera réalisé. 
+            Renseignée au 31-12-9999 si non significative.
+          type: string
+          example: 31-12-9999
+        direction:
+          description: >
+            Sens échéancier. Indique si l’échéancier est une souscription ou un
+            rachat:
+
+            - S : s’il s’agit d’une souscription 
+
+            - R : s’il s’agit d’un rachat
+          type: string
+          enum:
+            - S
+            - R
+          example: S
+        deadline_end_date:
+          format: date
+          description: >-
+            Date à laquelle prend fin l’échéancier. Renseignée au 31-12-9999 si
+            non significative.
+          type: string
+          example: 31-12-2021
+      required:
+        - investment_id
+        - component_id
+        - direction
+        - payment_period
+        - investment_amount
+        - investment_currency
+        - term_date
+      x-examples:
+        example-1:
+          last_revaluation_date: 31-12-9999
+          component_id: FR0011066794
+          investment_id: '001'
+          revaluation_currency: EUR
+          term_date: 12-04-2021
+          suspension_end_date: 31-12-9999
+          levy_date: 12-03-2021
+          revaluation_indicator: true
+          investment_currency: EUR
+          suspension_begin_date: 31-12-9999
+          investment_amount: 101
+          suspended_deadlines: 0
+          revaluate_curreny: EUR
+          last_levy_date: 12-03-2021
+          payment_period: M
+          revaluate_amount: 115
+          revaluation_month: '02'
+          revaluation_amount: 120
+          next_revaluation_date: 31-12-9999
+          direction: S
+          deadline_end_date: 31-12-2021
+        example-2:
+          value:
+            last_revaluation_date: 31-12-9999
+            component_id: FR0011066794
+            investment_id: '001'
+            revaluation_currency: EUR
+            term_date: '0310'
+            suspension_end_date: 31-12-9999
+            levy_date: 12-03-2021
+            revaluation_indicator: true
+            investment_currency: EUR
+            suspension_begin_date: 31-12-9999
+            investment_amount: 101
+            suspended_deadlines: 0
+            revaluate_curreny: EUR
+            last_levy_date: 12-03-2021
+            payment_period: M
+            revaluate_amount: 115
+            revaluation_month: '02'
+            revaluation_amount: 120
+            next_revaluation_date: 31-12-9999
+            direction: S
+            deadline_end_date: 31-12-2021
+    PEA_contract_data:
+      description: >-
+        Données relatives aux contrats PEA.
+
+        Données renseignées uniquement pour les comptes ayant cette typologie et
+        si synthesis_level=2
+      title: PEA_contract_data
+      type: object
+      properties:
+        pea_taxation_data:
+          $ref: '#/components/schemas/PEA_taxation'
+        pea_compartment_data:
+          $ref: '#/components/schemas/PEA_compartment_data'
+      x-examples:
+        example-1:
+          pea_taxation_data:
+            pea-first-payment-date: 03-12-2018
+            pea_cumul_payments: 11314,69
+            pea-partial-withdraw: true
+            pea-first_dutreil_withdrawal_date: 12-01-2021
+            pea_cumul_payments_currency: EUR
+            pea-partiel_withdraw-type: A
+          pea_compartment_data:
+            managed_compartment_cash_currency: EUR
+            free_compartment_cash_amount: 2000,63
+            managed_compartment_valorization: 192,15
+            managed_compartment_cash_amount: 1000,96
+            free_compartment_valorization_currency: EUR
+            free_compartment_cash_currency: EUR
+            managed_compartment_valorization_currency: EUR
+            free_compartment_valorisation: 247,12
+    Contract:
+      description: Ensemble des éléments de synthèse du contrat
+      title: Contract
+      type: object
+      properties:
+        scheduled_opc_subscriptions:
+          description: >-
+            Retourné uniquement si synthesis_level=2 et si 
+            additionnal_informations contient SCHEDULED_OPC_SUB
+          type: array
+          items:
+            $ref: '#/components/schemas/Scheduled_OPC_subscription'
+        peri_contract_data:
+          $ref: '#/components/schemas/PERI_contract_data'
+        contract_data:
+          $ref: '#/components/schemas/Contract_data'
+        pea_contract_data:
+          $ref: '#/components/schemas/PEA_contract_data'
+        positions:
+          description: Retourné uniquement si synthesis_level=2
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        contract_properties:
+          $ref: '#/components/schemas/Contract_properties'
+      required:
+        - contract_properties
+        - contract_data
+      x-examples:
+        example-2:
+          scheduled_opc_subscriptions:
+            - last_revaluation_date: 31-12-9999
+              component_id: FR0011066794
+              investment_id: '001'
+              revaluation_currency: EUR
+              term_date: 12-04-2021
+              suspension_end_date: 31-12-9999
+              levy_date: 12-03-2021
+              revaluation_indicator: true
+              investment_currency: EUR
+              suspension_begin_date: 31-12-9999
+              investment_amount: 101
+              suspended_deadlines: 0
+              revaluate_curreny: EUR
+              last_levy_date: 12-03-2021
+              payment_period: M
+              revaluate_amount: 115
+              revaluation_month: '02'
+              revaluation_amount: 120
+              next_revaluation_date: 31-12-9999
+              direction: S
+              deadline_end_date: 31-12-2021
+          peri_contract_data:
+            peri_compartments:
+              - contract_data:
+                  gestion_profil: prudent
+                  valorization: 1517,44
+                  mif_dm_code: A
+                  cash_curreny: EUR
+                  cash_amount: 800,62
+                  mif_code: '1'
+                  pledged_status: 0
+                  valorization_currency: EUR
+                  valorization_date: 07-04-2021
+                  gestion_mode: '2'
+                positions:
+                  - support_data:
+                      mif_dm_code: A
+                      quantity: 4
+                      mif_code: '4'
+                      unrealised_gain_or_loss: 30,5
+                      exchange_rate: 1,2
+                      dat_support_data:
+                        rate_type: FIX
+                        anticipate_withdraw_penalities: 5,2
+                        rate: 1,2
+                        term_date: 03-12-2021
+                        subscription_date: 07-03-2020
+                      pma: 10,8
+                      last_known_quote: 10,5
+                      last_quote_date: 05-04-2021
+                      valorization_amount: 3000,15
+                      quote_type: '1'
+                      valorization_date: 08-04-2021
+                      quote_currency: EUR
+                      quote_with_accrued_interest: 10,7
+                      pma_currency: EUR
+                      scaling_factor: '2'
+                      unrealised_gain_or_loss_currency: EUR
+                      pledged_status: true
+                      quantity_currency: EUR
+                      valorization_currency: EUR
+                    support_properties:
+                      pea_compartment_managed__indicator: true
+                      isin_code: FR0000045072
+                      label: CREDIT AGRICOLE S.A.
+                      product_category: '3'
+                product_code: string
+                scheduled_opc_subscription:
+                  - last_revaluation_date: 31-12-9999
+                    component_id: FR0011066794
+                    investment_id: '001'
+                    revaluation_currency: EUR
+                    term_date: 12-04-2021
+                    suspension_end_date: 31-12-9999
+                    levy_date: 12-03-2021
+                    revaluation_indicator: true
+                    investment_currency: EUR
+                    suspension_begin_date: 31-12-9999
+                    investment_amount: 101
+                    suspended_deadlines: 0
+                    revaluate_curreny: EUR
+                    last_levy_date: 12-03-2021
+                    payment_period: M
+                    revaluate_amount: 115
+                    revaluation_month: '02'
+                    revaluation_amount: 120
+                    next_revaluation_date: 31-12-9999
+                    direction: S
+                    deadline_end_date: 31-12-2021
+          contract_data:
+            gestion_profil: prudent
+            valorization: 1517,44
+            mif_dm_code: A
+            cash_curreny: EUR
+            cash_amount: 800,62
+            mif_code: '1'
+            pledged_status: 0
+            valorization_currency: EUR
+            valorization_date: 07-04-2021
+            gestion_mode: '2'
+          pea_contract_data:
+            pea_taxation_data:
+              pea_first_dutreil_withdrawal_date: 12-01-2021
+              pea_first_payment_date: 03-12-2018
+              pea_cumul_payments: 11314,69
+              pea_partial_withdraw: true
+              pea_cumul_payments_currency: EUR
+              pea_partiel_withdraw_type: A
+            pea_compartment_data:
+              managed_compartment_cash_currency: EUR
+              free_compartment_cash_amount: 2000,63
+              managed_compartment_valorization: 192,15
+              managed_compartment_cash_amount: 1000,96
+              free_compartment_valorization_currency: EUR
+              free_compartment_cash_currency: EUR
+              managed_compartment_valorization_currency: EUR
+              free_compartment_valorisation: 247,12
+          positions:
+            - support_data:
+                mif_dm_code: A
+                quantity: 4
+                mif_code: '4'
+                unrealised_gain_or_loss: 30,5
+                exchange_rate: 1,2
+                dat_support_data:
+                  rate_type: FIX
+                  anticipate_withdraw_penalities: 5,2
+                  rate: 1,2
+                  term_date: 03-12-2021
+                  subscription_date: 07-03-2020
+                pma: 10,8
+                last_known_quote: 10,5
+                last_quote_date: 05-04-2021
+                valorization_amount: 3000,15
+                quote_type: '1'
+                valorization_date: 08-04-2021
+                quote_currency: EUR
+                quote_with_accrued_interest: 10,7
+                pma_currency: EUR
+                scaling_factor: '2'
+                unrealised_gain_or_loss_currency: EUR
+                pledged_status: true
+                quantity_currency: EUR
+                valorization_currency: EUR
+              support_properties:
+                pea_compartment_managed__indicator: true
+                isin_code: FR0000045072
+                label: CREDIT AGRICOLE S.A.
+                product_category: '3'
+          contract_properties:
+            contract_id: '00000068660'
+            options:
+              - OPC_SCHEDULED_SUB
+            product_code: '0415'
+            uom_code: '20000'
+  securitySchemes:
+    default:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://api.ca-titres.group.gca/authorize
+          scopes: {}
+servers:
+  - url: https://api.ca-titres.group.gca/synthesis/v1
+  - url: http://api.ca-titres.group.gca/synthesis/v1
+openapi: 3.0.0
+paths:
+  /contracts/{uom_code}/{contract_id}:
+    get:
+      summary: Get synthesis for this contract
+      x-auth-type: Application & Application User
+      responses:
+        '200':
+          headers: {}
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties: {}
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+              examples:
+                example-1:
+                  value: {}
+            multipart/form-data:
+              schema:
+                type: object
+                properties: {}
+        '201':
+          description: Created
+        '204':
+          description: Compte inconnu
+        '400':
+          description: ' Syntaxe de la requête non valide'
+        '403':
+          description: "L’accès aux comptes de cette unité d’œuvre métier n’est pas autorisé.\_"
+      operationId: get-contracts-contract_id
+      description: Description du point contrat
+      parameters:
+        - schema:
+            maximum: 2
+            type: integer
+            minimum: 1
+            enum:
+              - 1
+              - 2
+            example: 1
+          in: query
+          name: synthesis_level
+          description: Niveau de synthèse (niveau 1 par défaut)
+        - schema:
+            type: string
+            enum:
+              - OPC_SCHEDULED_SUB
+            example: OPC_SCHEDULED_SUB
+          in: query
+          name: options
+          description: >-
+            Informations supplémentaires demandées pour la synthèse de niveau 2
+            (aucune information retournée par défaut)
+      x-throttling-tier: Unlimited
+      tags: []
+    parameters:
+      - schema:
+          type: string
+          example: '12345678911'
+        in: path
+        name: contract_id
+        description: >-
+          Numéro de contrat permettant de faire le lien entre le S.I CA-TITRES
+          et le S.I. LCL.
+        required: true
+      - schema:
+          type: string
+          example: '20000'
+        in: path
+        name: uom_code
+        description: >-
+          Unité d’Œuvre (UO) Métier. Cette donnée correspond à l'identifiant de
+          l'organisation rattachée au contrat (Code LCL : 20000)
+        required: true
+info:
+  description: >-
+    L'API Synthesis permet à CA-Titres de partager facilement avec ses
+    partenaires une synthèse des comptes de ses clients avec une vue globale ou
+    détaillée de leur portefeuille.
+  title: Synthesis
+  version: v1
